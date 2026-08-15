@@ -120,7 +120,14 @@
 
   /* Chat page: the PiUI rounded card — rounded and shadowed, clipped to the
      radius, no border so no divider line sits between it and the sidebar.
-     The conversation renders completely untouched inside. */
+     The conversation renders completely untouched inside. The 3D flip is
+     the card's OWN transform (rotateY/scale, never past ±10deg), so
+     `transform-style: preserve-3d` (children have no 3D transforms) and
+     `backface-visibility: hidden` (the back is never shown) are BOTH
+     dropped. Keeping them forces the card into its own 3D/compositing
+     context on some mobile engines, which can clip or fail to paint
+     sticky descendants — the approval ("等待审批") and question cards
+     render in the sticky composer seat and went invisible on phones. */
   [data-dsh-mobile] div[data-sidebar-collapsed] > :nth-child(2),
   [data-dsh-mobile] div[data-details-collapsed] > :nth-child(2) {
     border: none;
@@ -132,8 +139,6 @@
       rotateY(var(--dshm-rotate, 0deg))
       scale(var(--dshm-scale, 1));
     transform-origin: var(--dshm-origin-x, 50% 50%);
-    transform-style: preserve-3d;
-    backface-visibility: hidden;
     will-change: transform;
   }
 
@@ -197,12 +202,21 @@
      content column takes the remaining height. Follows OpenCodeUI's mobile
      settings dialog. Selectors use the stable role/data-slot hooks only —
      [role=dialog] for the panel, nav for the rail, the content column as
-     the dialog's last child — never hashed class names. */
+     the dialog's last child — never hashed class names.
+
+     Every rule here is scoped to `[role='dialog']:has(> nav)`: the bare
+     `[role=dialog]` hook is NOT unique — the ui-primitives Modal
+     (permission/RiskConfirmation, agent-preset viewer, delete
+     confirmations) and the context-meter popover are also `role=dialog`
+     but have no `<nav>` rail. Scoping to the nav-bearing settings panel
+     keeps those dialogs at their own size instead of forcing the settings
+     width/height/flex onto them (the permission card blew up to
+     full-viewport height). */
 
   /* Panel: centered card, single column. The stock modal layer already
      centers it (overlay flex + mask); keeping width/height capped below
      the viewport with a margin preserves the dialog affordance. */
-  [data-dsh-mobile] [role='dialog'] {
+  [data-dsh-mobile] [role='dialog']:has(> nav) {
     flex-direction: column;
     width: min(560px, calc(100vw - 32px));
     height: min(720px, calc(100vh - 32px));
@@ -216,7 +230,7 @@
      line (title left, actions + close right via the absolute content
      header), and the cell list flows horizontally, scrolling when it
      overflows. */
-  [data-dsh-mobile] [role='dialog'] > nav {
+  [data-dsh-mobile] [role='dialog']:has(> nav) > nav {
     flex: none;
     flex-direction: column;
     width: 100%;
@@ -226,7 +240,7 @@
   }
 
   /* Nav title: the dialog title, left-aligned on the header line. */
-  [data-dsh-mobile] [role='dialog'] > nav > div:first-child {
+  [data-dsh-mobile] [role='dialog']:has(> nav) > nav > div:first-child {
     padding: 0 4px;
     font-size: 15px;
     line-height: 22px;
@@ -234,7 +248,7 @@
   }
 
   /* Nav cell list: horizontal scrollable row of pill tabs. */
-  [data-dsh-mobile] [role='dialog'] > nav > div:nth-child(2) {
+  [data-dsh-mobile] [role='dialog']:has(> nav) > nav > div:nth-child(2) {
     flex-direction: row;
     gap: 6px;
     overflow-x: auto;
@@ -244,12 +258,12 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  [data-dsh-mobile] [role='dialog'] > nav > div:nth-child(2)::-webkit-scrollbar {
+  [data-dsh-mobile] [role='dialog']:has(> nav) > nav > div:nth-child(2)::-webkit-scrollbar {
     display: none;
   }
 
   /* Nav cells: pill tabs — no fixed width, horizontal padding, nowrap. */
-  [data-dsh-mobile] [role='dialog'] > nav button {
+  [data-dsh-mobile] [role='dialog']:has(> nav) > nav button {
     flex: none;
     width: auto;
     height: 34px;
@@ -264,7 +278,7 @@
      button sit beside the title instead of on their own row. The column
      itself then starts below the tab strip (its header no longer takes
      flow height). */
-  [data-dsh-mobile] [role='dialog'] > div:last-child > div:first-child {
+  [data-dsh-mobile] [role='dialog']:has(> nav) > div:last-child > div:first-child {
     position: absolute;
     top: 10px;
     right: 14px;
@@ -279,12 +293,12 @@
   }
 
   /* The lifted header must not reserve flow height below the tabs. */
-  [data-dsh-mobile] [role='dialog'] > div:last-child > div:first-child + * {
+  [data-dsh-mobile] [role='dialog']:has(> nav) > div:last-child > div:first-child + * {
     margin-top: 0;
   }
 
   /* Content column: the remaining height under the tab strip. */
-  [data-dsh-mobile] [role='dialog'] > div:last-child {
+  [data-dsh-mobile] [role='dialog']:has(> nav) > div:last-child {
     flex: 1;
     min-height: 0;
     width: 100%;
@@ -297,7 +311,7 @@
      leftover/stacked padding would read as "left has more whitespace,
      right looks clipped". 16px both sides keeps rows breathing without
      crowding the selectors; the area scrolls. */
-  [data-dsh-mobile] [role='dialog'] > div:last-child > div:last-child {
+  [data-dsh-mobile] [role='dialog']:has(> nav) > div:last-child > div:last-child {
     padding: 4px 16px 16px;
     overflow-y: auto;
   }
