@@ -1,3 +1,5 @@
+[![dshfind](https://dshfind.com/api/card/lehhair/dsh-mobile?lang=zh)](https://dshfind.com/zh/plugins/lehhair/dsh-mobile?ref=badge)
+
 # dsh-mobile
 
 DSH WebUI 移动端适配插件（**PiUI 翻页器结构**）：窄屏下框架本身就是横向 scroll-snap 翻页器，两页卡片——**半开侧边栏页**（`min(360px, 50vw)`）+ **全宽聊天页**。滑到侧边栏页后聊天卡片仍在右边露出一半（PiUI 同款 overlayWidth 效果），聊天渲染零改动。纯客户端适配，零核心改动——官方 rc.2 发行版直接可用。
@@ -20,12 +22,24 @@ DSH WebUI 移动端适配插件（**PiUI 翻页器结构**）：窄屏下框架�
 
 ## 安装
 
+### 推荐：GitHub Release 构建产物（开箱即用）
+
+`releases/latest` 永远指向最新版本，链接不用随版本改动：
+
 ```sh
-git clone https://github.com/dsh-external/dsh-mobile.git
-dsh plugin --profile web add link:E:/dev/dsh-mobile
+dsh plugin --profile web add "https://github.com/lehhair/dsh-mobile/releases/latest/download/dsh-external-dsh-mobile.tgz"
 ```
 
 重启 `dsh web`，用手机模式（DevTools 设备模拟）或真实手机访问即可。
+
+> ⚠️ 升级注意：pnpm 会按 URL 缓存 tarball——同一 `latest` 链接在新版本发布后可能命中旧缓存。装到旧版时先 `dsh plugin --profile web remove @dsh-external/dsh-mobile` 再重新安装（必要时 `pnpm store prune`）。
+
+### 开发环境（从源码）
+
+```sh
+git clone https://github.com/lehhair/dsh-mobile.git
+dsh plugin --profile web add link:E:/dev/dsh-mobile
+```
 
 ## 使用
 
@@ -58,6 +72,10 @@ src/client/
 ## License
 
 BSD-3-Clause
+
+## 友情链接 / Friend Links
+
+- [DSHFind](https://dshfind.com/) — DeepSeek Harness 插件市场与学习社区
 
 
 
