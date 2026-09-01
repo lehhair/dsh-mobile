@@ -263,6 +263,7 @@ export class MobileController implements MobileControllerHandle {
     // automatic focus is bounced.
     document.addEventListener('pointerdown', this.#onPointerDownCapture, true)
     document.addEventListener('focusin', this.#onFocusInCapture, true)
+    document.addEventListener('keydown', this.#onComposerKeyDown, true)
 
     const root = document.getElementById('root')
     if (root !== null) {
@@ -337,6 +338,7 @@ export class MobileController implements MobileControllerHandle {
     document.removeEventListener('click', this.#onDocClickCapture, true)
     document.removeEventListener('pointerdown', this.#onPointerDownCapture, true)
     document.removeEventListener('focusin', this.#onFocusInCapture, true)
+    document.removeEventListener('keydown', this.#onComposerKeyDown, true)
     for (const timer of [this.#keyboardFrame, this.#mountFrame, this.#resizeTimer, this.#settleTimer, this.#marqueeFrame, this.#returnTimer]) {
       if (timer !== null) (timer === this.#keyboardFrame || timer === this.#mountFrame || timer === this.#marqueeFrame ? cancelAnimationFrame : window.clearTimeout)(timer)
     }
@@ -561,6 +563,17 @@ export class MobileController implements MobileControllerHandle {
       && (pointer === target || target.contains(pointer))
     if (ownTap) return
     target.blur()
+  }
+
+  /** Touch Enter inserts a newline while preserving the stock modifier and
+   *  slash-menu paths. */
+  readonly #onComposerKeyDown = (event: KeyboardEvent): void => {
+    const target = event.target
+    if (!(target instanceof HTMLTextAreaElement) || event.key !== 'Enter') return
+    if (event.isComposing || event.keyCode === 229 || event.ctrlKey || event.metaKey || event.shiftKey) return
+    if (!this.#mql?.matches || target.closest('[data-composer-card]') === null) return
+    if (document.querySelector('[role="listbox"][aria-activedescendant]') !== null) return
+    event.stopImmediatePropagation()
   }
 
   /** A tap on the exposed chat card returns to the chat page (PiUI's
